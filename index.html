@@ -920,6 +920,8 @@
                 this.audioCtx = null;
                 this.compressor = null;
                 this.masterGain = null;
+                this.keepAliveOsc = null;
+                this.keepAliveGain = null;
                 this.remainingTime = 0;
                 this.endTime = null;
                 this.isRunning = false;
@@ -999,7 +1001,9 @@
                 this.volumeSlider.addEventListener('input', (e) => {
                     this.volume = parseFloat(e.target.value) / 100;
                     if (this.masterGain) {
-                        this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+                        try {
+                            this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+                        } catch (err) {}
                     }
                     this.updateVolumeIcon();
                     this.saveSettings();
@@ -1128,40 +1132,83 @@
 
             initAudio() {
                 if (!this.audioCtx) {
-                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    
-                    // Create dynamics compressor to optimize overall loudness and prevent clipping
-                    this.compressor = this.audioCtx.createDynamicsCompressor();
-                    this.compressor.threshold.setValueAtTime(-15, this.audioCtx.currentTime);
-                    this.compressor.knee.setValueAtTime(30, this.audioCtx.currentTime);
-                    this.compressor.ratio.setValueAtTime(12, this.audioCtx.currentTime);
-                    this.compressor.attack.setValueAtTime(0.003, this.audioCtx.currentTime);
-                    this.compressor.release.setValueAtTime(0.25, this.audioCtx.currentTime);
+                    try {
+                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        
+                        // Create dynamics compressor to optimize overall loudness and prevent clipping
+                        this.compressor = this.audioCtx.createDynamicsCompressor();
+                        this.compressor.threshold.setValueAtTime(-15, this.audioCtx.currentTime);
+                        this.compressor.knee.setValueAtTime(30, this.audioCtx.currentTime);
+                        this.compressor.ratio.setValueAtTime(12, this.audioCtx.currentTime);
+                        this.compressor.attack.setValueAtTime(0.003, this.audioCtx.currentTime);
+                        this.compressor.release.setValueAtTime(0.25, this.audioCtx.currentTime);
 
-                    // Master gain control linked to the volume slider
-                    this.masterGain = this.audioCtx.createGain();
-                    this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+                        // Master gain control linked to the volume slider
+                        this.masterGain = this.audioCtx.createGain();
+                        this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
 
-                    // Connect compressor -> master gain -> destination
-                    this.compressor.connect(this.masterGain);
-                    this.masterGain.connect(this.audioCtx.destination);
+                        // Connect compressor -> master gain -> destination
+                        this.compressor.connect(this.masterGain);
+                        this.masterGain.connect(this.audioCtx.destination);
+                    } catch (e) {
+                        console.error('Failed to initialize AudioContext:', e);
+                    }
                 }
-                if (this.audioCtx.state === 'suspended') {
-                    this.audioCtx.resume();
+                
+                // Safely resume suspended contexts
+                try {
+                    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                        this.audioCtx.resume();
+                    }
+                } catch (e) {
+                    console.warn('AudioContext resume failed:', e);
                 }
             }
 
-            // --- Audio Synthesizers (Louder, compressed, and rich) ---
+            // --- Keep-Alive Silent Oscillator to prevent background browser suspension ---
+            startKeepAlive() {
+                this.initAudio();
+                if (this.keepAliveOsc) return;
+                
+                try {
+                    this.keepAliveOsc = this.audioCtx.createOscillator();
+                    this.keepAliveGain = this.audioCtx.createGain();
+                    
+                    this.keepAliveOsc.frequency.setValueAtTime(10, this.audioCtx.currentTime); // sub-audible
+                    this.keepAliveGain.gain.setValueAtTime(0.0, this.audioCtx.currentTime); // silent
+                    
+                    this.keepAliveOsc.connect(this.keepAliveGain);
+                    this.keepAliveGain.connect(this.audioCtx.destination);
+                    this.keepAliveOsc.start();
+                } catch (e) {
+                    console.warn('Keep-alive oscillator failed to start:', e);
+                }
+            }
+
+            stopKeepAlive() {
+                if (this.keepAliveOsc) {
+                    try {
+                        this.keepAliveOsc.stop();
+                    } catch (e) {}
+                    this.keepAliveOsc = null;
+                }
+            }
+
+            // --- Audio Synthesizers (Louder, compressed, and robustly scheduled) ---
             playTone(freq, type, startTimeOffset, duration, volume = 0.8) {
                 this.initAudio();
+                const now = this.audioCtx.currentTime;
+                const startTime = now + startTimeOffset;
+                
                 const osc = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
-                const startTime = this.audioCtx.currentTime + startTimeOffset;
 
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, startTime);
                 
-                gain.gain.setValueAtTime(volume, startTime);
+                // Envelope setup starting immediately from the current time to prevent scheduling in the past
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.linearRampToValueAtTime(volume, startTime + 0.005);
                 gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
                 
                 osc.connect(gain);
@@ -1174,7 +1221,7 @@
             // Multi-partial beautiful resonant bell
             playBell(freq, duration, volume = 0.9) {
                 this.initAudio();
-                const startTime = this.audioCtx.currentTime;
+                const now = this.audioCtx.currentTime;
                 const partials = [1, 1.2, 1.5, 2.0, 2.5, 3.0];
                 const decays = [1, 0.8, 0.6, 0.4, 0.2, 0.1];
 
@@ -1183,17 +1230,19 @@
                     const gain = this.audioCtx.createGain();
                     
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq * ratio, startTime);
+                    osc.frequency.setValueAtTime(freq * ratio, now);
                     
                     const partDecay = duration * decays[index];
-                    gain.gain.setValueAtTime(volume * (1.2 / partials.length), startTime);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + partDecay);
+                    
+                    gain.gain.setValueAtTime(0.0001, now);
+                    gain.gain.linearRampToValueAtTime(volume * (1.2 / partials.length), now + 0.005);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + partDecay);
                     
                     osc.connect(gain);
                     gain.connect(this.compressor);
                     
-                    osc.start(startTime);
-                    osc.stop(startTime + partDecay);
+                    osc.start(now);
+                    osc.stop(now + partDecay);
                 });
             }
 
@@ -1208,7 +1257,7 @@
             // Lowpass-filtered sawtooth sweeps (loud buzzer/alarm)
             playAlertAlarm(volume = 0.9) {
                 this.initAudio();
-                const startTime = this.audioCtx.currentTime;
+                const now = this.audioCtx.currentTime;
                 
                 for (let i = 0; i < 4; i++) {
                     const tStart = i * 0.25;
@@ -1219,49 +1268,51 @@
                     
                     const filter = this.audioCtx.createBiquadFilter();
                     filter.type = 'lowpass';
-                    filter.frequency.setValueAtTime(1800, startTime + tStart);
+                    filter.frequency.setValueAtTime(1800, now + tStart);
                     
-                    osc.frequency.setValueAtTime(i % 2 === 0 ? 880 : 660, startTime + tStart);
+                    osc.frequency.setValueAtTime(i % 2 === 0 ? 880 : 660, now + tStart);
                     
-                    gain.gain.setValueAtTime(volume, startTime + tStart);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + tStart + 0.2);
+                    gain.gain.setValueAtTime(0.0001, now);
+                    gain.gain.linearRampToValueAtTime(volume, now + tStart + 0.005);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + tStart + 0.2);
                     
                     osc.connect(filter);
                     filter.connect(gain);
                     gain.connect(this.compressor);
                     
-                    osc.start(startTime + tStart);
-                    osc.stop(startTime + tStart + 0.2);
+                    osc.start(now + tStart);
+                    osc.stop(now + tStart + 0.2);
                 }
             }
 
             // Fun Option 1: B5 -> E6 8-bit Coin sound
             playRetroArcade(volume = 0.9) {
                 this.initAudio();
-                const startTime = this.audioCtx.currentTime;
+                const now = this.audioCtx.currentTime;
                 
                 const osc = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
                 
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(987.77, startTime); // B5
-                osc.frequency.setValueAtTime(1318.51, startTime + 0.07); // E6
+                osc.frequency.setValueAtTime(987.77, now); // B5
+                osc.frequency.setValueAtTime(1318.51, now + 0.07); // E6
                 
-                gain.gain.setValueAtTime(volume * 0.8, startTime);
-                gain.gain.setValueAtTime(volume * 0.8, startTime + 0.07);
-                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.32);
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.linearRampToValueAtTime(volume * 0.8, now + 0.002);
+                gain.gain.setValueAtTime(volume * 0.8, now + 0.07);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
                 
                 osc.connect(gain);
                 gain.connect(this.compressor);
                 
-                osc.start(startTime);
-                osc.stop(startTime + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
             }
 
             // Fun Option 2: Referee whistle beating effect
             playSportsWhistle(volume = 0.9) {
                 this.initAudio();
-                const startTime = this.audioCtx.currentTime;
+                const now = this.audioCtx.currentTime;
                 
                 const osc1 = this.audioCtx.createOscillator();
                 const osc2 = this.audioCtx.createOscillator();
@@ -1269,39 +1320,41 @@
                 const gain2 = this.audioCtx.createGain();
                 
                 osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(2200, startTime);
+                osc1.frequency.setValueAtTime(2200, now);
                 
                 osc2.type = 'sine';
-                osc2.frequency.setValueAtTime(2240, startTime);
+                osc2.frequency.setValueAtTime(2240, now);
                 
                 // Whistle vibrato LFO
                 const lfo = this.audioCtx.createOscillator();
                 const lfoGain = this.audioCtx.createGain();
-                lfo.frequency.setValueAtTime(30, startTime);
-                lfoGain.gain.setValueAtTime(50, startTime);
+                lfo.frequency.setValueAtTime(30, now);
+                lfoGain.gain.setValueAtTime(50, now);
                 
                 lfo.connect(lfoGain);
                 lfoGain.connect(osc1.frequency);
                 lfoGain.connect(osc2.frequency);
                 
-                gain1.gain.setValueAtTime(volume * 0.6, startTime);
-                gain1.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
+                gain1.gain.setValueAtTime(0.0001, now);
+                gain1.gain.linearRampToValueAtTime(volume * 0.6, now + 0.005);
+                gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
                 
-                gain2.gain.setValueAtTime(volume * 0.6, startTime);
-                gain2.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
+                gain2.gain.setValueAtTime(0.0001, now);
+                gain2.gain.linearRampToValueAtTime(volume * 0.6, now + 0.005);
+                gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
                 
                 osc1.connect(gain1);
                 osc2.connect(gain2);
                 gain1.connect(this.compressor);
                 gain2.connect(this.compressor);
                 
-                lfo.start(startTime);
-                osc1.start(startTime);
-                osc2.start(startTime);
+                lfo.start(now);
+                osc1.start(now);
+                osc2.start(now);
                 
-                lfo.stop(startTime + 0.6);
-                osc1.stop(startTime + 0.6);
-                osc2.stop(startTime + 0.6);
+                lfo.stop(now + 0.6);
+                osc1.stop(now + 0.6);
+                osc2.stop(now + 0.6);
             }
 
             // Fun Option 3: Jazz major 9th sweep arpeggio
@@ -1330,49 +1383,52 @@
             }
 
             playWarningTap(time, volume) {
+                const schedTime = Math.max(time, this.audioCtx.currentTime);
                 const osc1 = this.audioCtx.createOscillator();
                 const osc2 = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
                 
                 osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(523.25, time); // C5
+                osc1.frequency.setValueAtTime(523.25, schedTime); // C5
                 
                 osc2.type = 'sine';
-                osc2.frequency.setValueAtTime(1046.50, time); // C6 harmonic
+                osc2.frequency.setValueAtTime(1046.50, schedTime); // C6 harmonic
                 
-                gain.gain.setValueAtTime(0, time);
-                gain.gain.linearRampToValueAtTime(volume, time + 0.002);
-                gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.07);
+                gain.gain.setValueAtTime(0.0001, this.audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.0001, schedTime);
+                gain.gain.linearRampToValueAtTime(volume, schedTime + 0.002);
+                gain.gain.exponentialRampToValueAtTime(0.0001, schedTime + 0.07);
                 
                 osc1.connect(gain);
                 osc2.connect(gain);
                 gain.connect(this.compressor);
                 
-                osc1.start(time);
-                osc2.start(time);
-                osc1.stop(time + 0.09);
-                osc2.stop(time + 0.09);
+                osc1.start(schedTime);
+                osc2.start(schedTime);
+                osc1.stop(schedTime + 0.09);
+                osc2.stop(schedTime + 0.09);
             }
 
             // Crystal chime chirp for mid-round reminders
             playCustomChirp() {
                 this.initAudio();
-                const startTime = this.audioCtx.currentTime;
+                const now = this.audioCtx.currentTime;
                 const osc = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
                 
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(1500, startTime);
-                osc.frequency.exponentialRampToValueAtTime(2000, startTime + 0.12);
+                osc.frequency.setValueAtTime(1500, now);
+                osc.frequency.exponentialRampToValueAtTime(2000, now + 0.12);
                 
-                gain.gain.setValueAtTime(0.7, startTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.12);
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.linearRampToValueAtTime(0.7, now + 0.002);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
                 
                 osc.connect(gain);
                 gain.connect(this.compressor);
                 
-                osc.start(startTime);
-                osc.stop(startTime + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
             }
 
             playDoneSound() {
@@ -1507,6 +1563,7 @@
                         clearInterval(this.fallbackInterval);
                         this.fallbackInterval = null;
                     }
+                    this.stopKeepAlive();
                     this.releaseWakeLock();
 
                     this.startBtn.textContent = 'Resume';
@@ -1536,6 +1593,7 @@
                     this.startBtn.textContent = 'Pause';
                     this.startBtn.classList.add('paused');
 
+                    this.startKeepAlive();
                     this.requestWakeLock();
 
                     if (this.worker) {
@@ -1559,6 +1617,7 @@
                     this.fallbackInterval = null;
                 }
 
+                this.stopKeepAlive();
                 this.releaseWakeLock();
                 this.updateDisplay(0);
                 this.setProgress(0);
@@ -1593,6 +1652,7 @@
                     this.fallbackInterval = null;
                 }
 
+                this.stopKeepAlive();
                 this.releaseWakeLock();
 
                 this.remainingTime = this.totalDuration;
@@ -1671,7 +1731,9 @@
                 this.volume = volPercent / 100;
                 this.volumeSlider.value = volPercent;
                 if (this.masterGain) {
-                    this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+                    try {
+                        this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+                    } catch (err) {}
                 }
                 this.updateVolumeIcon();
                 this.saveSettings();
@@ -1687,7 +1749,9 @@
                     this.volumeSlider.value = this.volume * 100;
                 }
                 if (this.masterGain) {
-                    this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+                    try {
+                        this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+                    } catch (err) {}
                 }
                 this.updateVolumeIcon();
                 this.saveSettings();
@@ -1731,6 +1795,7 @@
 
             releaseWakeLock() {
                 if (this.wakeLock) {
+                    this.keepAliveOsc = null; // clean ref
                     this.wakeLock.release().then(() => {
                         this.wakeLock = null;
                         this.wakeLockIndicator.classList.remove('active');
