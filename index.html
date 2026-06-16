@@ -1378,35 +1378,44 @@
             playSoftWarningSound() {
                 this.initAudio();
                 const startTime = this.audioCtx.currentTime;
-                this.playWarningTap(startTime, 0.6);
-                this.playWarningTap(startTime + 0.15, 0.45);
+                this.playWarningTap(startTime, 0.95);
+                this.playWarningTap(startTime + 0.2, 0.75);
             }
 
             playWarningTap(time, volume) {
                 const schedTime = Math.max(time, this.audioCtx.currentTime);
                 const osc1 = this.audioCtx.createOscillator();
                 const osc2 = this.audioCtx.createOscillator();
+                const osc3 = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
                 
-                osc1.type = 'sine';
+                // Triangle wave adds warm harmonics, fifth harmonic (G5) adds bell-like clarity
+                osc1.type = 'triangle';
                 osc1.frequency.setValueAtTime(523.25, schedTime); // C5
                 
                 osc2.type = 'sine';
-                osc2.frequency.setValueAtTime(1046.50, schedTime); // C6 harmonic
+                osc2.frequency.setValueAtTime(1046.50, schedTime); // C6
+                
+                osc3.type = 'sine';
+                osc3.frequency.setValueAtTime(783.99, schedTime); // G5
                 
                 gain.gain.setValueAtTime(0.0001, this.audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.0001, schedTime);
-                gain.gain.linearRampToValueAtTime(volume, schedTime + 0.002);
-                gain.gain.exponentialRampToValueAtTime(0.0001, schedTime + 0.07);
+                gain.gain.linearRampToValueAtTime(volume, schedTime + 0.005);
+                gain.gain.exponentialRampToValueAtTime(0.0001, schedTime + 0.18); // longer decay (0.18s)
                 
                 osc1.connect(gain);
                 osc2.connect(gain);
+                osc3.connect(gain);
                 gain.connect(this.compressor);
                 
                 osc1.start(schedTime);
                 osc2.start(schedTime);
-                osc1.stop(schedTime + 0.09);
-                osc2.stop(schedTime + 0.09);
+                osc3.start(schedTime);
+                
+                osc1.stop(schedTime + 0.2);
+                osc2.stop(schedTime + 0.2);
+                osc3.stop(schedTime + 0.2);
             }
 
             // Crystal chime chirp for mid-round reminders
