@@ -1498,22 +1498,22 @@
 
                 if (totalSeconds <= 10 && totalSeconds > 0) {
                     this.display.className = 'time-display critical';
-                    this.progressRing.className = 'timer-circle-progress critical';
+                    this.progressRing.setAttribute('class', 'timer-circle-progress critical');
                     this.statusBadge.textContent = 'Critical Time!';
                     this.statusBadge.className = 'status-badge critical-badge';
                 } else if (totalSeconds <= 30 && totalSeconds > 0) {
                     this.display.className = 'time-display warning';
-                    this.progressRing.className = 'timer-circle-progress warning';
+                    this.progressRing.setAttribute('class', 'timer-circle-progress warning');
                     this.statusBadge.textContent = 'Warning Period';
                     this.statusBadge.className = 'status-badge warning-badge';
                 } else if (totalSeconds > 0) {
                     this.display.className = 'time-display';
-                    this.progressRing.className = 'timer-circle-progress';
+                    this.progressRing.setAttribute('class', 'timer-circle-progress');
                     this.statusBadge.textContent = 'Active Speaker';
                     this.statusBadge.className = 'status-badge active';
                 } else {
                     this.display.className = 'time-display';
-                    this.progressRing.className = 'timer-circle-progress';
+                    this.progressRing.setAttribute('class', 'timer-circle-progress');
                     this.statusBadge.textContent = 'Time Up!';
                     this.statusBadge.className = 'status-badge critical-badge';
                 }
