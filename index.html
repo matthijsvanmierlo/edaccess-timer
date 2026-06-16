@@ -4,27 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>edACCESS Pro Roundtable Timer</title>
+    <!-- Modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Primary Brand Text & Main Color */
-            --brand-teal-dark: #165B5C;       /* "edACCESS" text and bottom-left icon */
-            --brand-teal-light: #1E7E80;      /* Hover/Accent teal */
-    
-            /* Logo Icon Palette */
-            --brand-orange: #E66A25;          /* Top-left icon element */
-            --brand-orange-hover: #C55317;    
-            --brand-green: #7CB046;           /* Top-right icon element */
-            --brand-yellow: #F6A623;          /* Bottom-right icon element */
-    
-            /* Neutrals & UI Elements */
-            --brand-gray-light: #F4F7F9;      /* Backgrounds */
-            --brand-gray-dark: #333F48;       /* Body copy */
+            /* edACCESS Brand Colors */
+            --brand-navy: #1B365D;
+            --brand-navy-light: #2A528A;
+            --brand-navy-dark: #0F2341;
+            --brand-orange: #E87722;
+            --brand-orange-light: #FCECE1;
+            --brand-orange-hover: #CC661A;
+            --brand-red: #EF4444;
+            --brand-red-light: #FEE2E2;
+            --brand-gray-light: #F4F7F9;
+            --brand-gray-med: #E2E8F0;
+            --brand-gray-dark: #4A5568;
+            --brand-gray-text: #64748B;
             --white: #FFFFFF;
             
             /* UI Metrics */
-            --radius-lg: 16px;
-            --radius-sm: 8px;
-            --shadow: 0 12px 30px rgba(27, 54, 93, 0.15);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 10px 15px -3px rgba(27, 54, 93, 0.08), 0 4px 6px -2px rgba(27, 54, 93, 0.03);
+            --shadow-lg: 0 20px 25px -5px rgba(27, 54, 93, 0.12), 0 10px 10px -5px rgba(27, 54, 93, 0.04);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -34,40 +42,57 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, var(--brand-gray-light) 0%, #E2E8F0 100%);
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: radial-gradient(circle at 10% 20%, #F1F5F9 0%, #E2E8F0 90%);
             color: var(--brand-navy);
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 1rem;
+            padding: 1.5rem;
         }
 
         .app-card {
             background: var(--white);
             width: 100%;
-            max-width: 480px;
-            padding: clamp(2rem, 5vw, 3rem);
+            max-width: 500px;
+            padding: 2.5rem 2rem;
             border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-lg);
             text-align: center;
             position: relative;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
+        /* Top brand accent bar */
         .app-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 6px;
+            height: 8px;
             background: linear-gradient(90deg, var(--brand-navy) 0%, var(--brand-orange) 100%);
         }
 
         .header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            height: 70px;
+        }
+
+        .brand-logo {
+            max-height: 70px;
+            max-width: 85%;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(27, 54, 93, 0.06));
         }
 
         .logo {
@@ -75,7 +100,6 @@
             font-weight: 800;
             letter-spacing: -0.5px;
             color: var(--brand-navy);
-            margin-bottom: 0.25rem;
         }
 
         .logo span {
@@ -84,53 +108,244 @@
         }
 
         .subtitle {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: var(--brand-gray-dark);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 600;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-top: 0.25rem;
         }
 
-        .config-panel {
+        /* Setup controls */
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--brand-gray-text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: left;
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 2rem;
+            gap: 0.5rem;
+        }
+
+        .setup-section {
             background: var(--brand-gray-light);
-            padding: 1rem;
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--brand-gray-med);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .time-setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .time-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .time-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--white);
+            border: 2px solid var(--brand-gray-med);
             border-radius: var(--radius-sm);
-            border: 1px solid #E2E8F0;
+            padding: 0.25rem 0.5rem;
+            transition: var(--transition);
         }
 
-        .config-panel label {
+        .time-input-wrapper:focus-within {
+            border-color: var(--brand-orange);
+            box-shadow: 0 0 0 3px rgba(232, 119, 34, 0.15);
+        }
+
+        .time-input-wrapper input {
+            width: 45px;
+            border: none;
+            background: transparent;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--brand-navy);
+            text-align: center;
+            outline: none;
+        }
+
+        /* Remove spin buttons */
+        .time-input-wrapper input::-webkit-outer-spin-button,
+        .time-input-wrapper input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .time-input-wrapper input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .time-input-wrapper span {
+            font-size: 0.85rem;
             font-weight: 600;
-            font-size: 0.95rem;
+            color: var(--brand-gray-dark);
+            text-transform: uppercase;
         }
 
-        .config-panel input {
-            width: 80px;
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .preset-btn {
+            background: var(--white);
+            border: 1.5px solid var(--brand-gray-med);
+            border-radius: var(--radius-sm);
             padding: 0.5rem;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: var(--brand-navy);
-            border: 2px solid #CBD5E1;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .preset-btn:hover {
+            border-color: var(--brand-navy);
+            background: var(--brand-gray-light);
+        }
+
+        .preset-btn.active {
+            background: var(--brand-navy);
+            color: var(--white);
+            border-color: var(--brand-navy);
+        }
+
+        /* Sound Control Row */
+        .sound-section {
+            background: var(--brand-gray-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--brand-gray-med);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .select-wrapper {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.6rem 2rem 0.6rem 0.8rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--brand-navy);
+            background: var(--white);
+            border: 2px solid var(--brand-gray-med);
             border-radius: var(--radius-sm);
-            text-align: center;
-            transition: all 0.2s ease;
+            appearance: none;
+            cursor: pointer;
+            transition: var(--transition);
         }
 
-        .config-panel input:focus {
+        select:focus {
             outline: none;
-            border-color: var(--brand-orange);
-            box-shadow: 0 0 0 3px rgba(232, 119, 34, 0.2);
+            border-color: var(--brand-navy);
         }
 
+        .select-wrapper::after {
+            content: '▼';
+            font-size: 0.7rem;
+            position: absolute;
+            right: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--brand-navy);
+            pointer-events: none;
+        }
+
+        .btn-test {
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: var(--white);
+            color: var(--brand-navy);
+            border: 2px solid var(--brand-navy);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: var(--transition);
+        }
+
+        .btn-test:hover:not(:disabled) {
+            background: var(--brand-navy);
+            color: var(--white);
+        }
+
+        /* Volume slider Group */
+        .volume-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .volume-icon {
+            font-size: 1.2rem;
+            cursor: pointer;
+            user-select: none;
+            width: 24px;
+            text-align: center;
+        }
+
+        .volume-slider {
+            flex-grow: 1;
+            height: 6px;
+            background: var(--brand-gray-med);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--brand-navy);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: var(--brand-orange);
+        }
+
+        /* Timer display */
         .timer-wrapper {
             position: relative;
-            width: clamp(200px, 60vw, 280px);
-            height: clamp(200px, 60vw, 280px);
-            margin: 0 auto 2.5rem;
+            width: clamp(220px, 50vw, 260px);
+            height: clamp(220px, 50vw, 260px);
+            margin: 1.5rem auto 1.5rem;
         }
 
         .timer-svg {
@@ -142,104 +357,290 @@
         .timer-circle-bg {
             fill: none;
             stroke: var(--brand-gray-light);
-            stroke-width: 8;
+            stroke-width: 6;
         }
 
         .timer-circle-progress {
             fill: none;
             stroke: var(--brand-navy);
-            stroke-width: 8;
+            stroke-width: 6;
             stroke-linecap: round;
             transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
         }
 
+        /* States */
         .timer-circle-progress.warning {
             stroke: var(--brand-orange);
+            filter: drop-shadow(0 0 6px rgba(232, 119, 34, 0.4));
         }
 
-        .time-display {
+        .timer-circle-progress.critical {
+            stroke: var(--brand-red);
+            filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+        }
+
+        .time-display-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: clamp(3rem, 8vw, 4.5rem);
-            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .time-display {
+            font-size: clamp(3.2rem, 7vw, 4.2rem);
+            font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--brand-navy);
             transition: color 0.3s ease;
+            line-height: 1;
         }
 
         .time-display.warning {
             color: var(--brand-orange);
-            animation: gentle-pulse 2s infinite;
         }
 
+        .time-display.critical {
+            color: var(--brand-red);
+            animation: gentle-shake 0.5s infinite alternate;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--brand-gray-text);
+            margin-top: 0.25rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            background: var(--brand-gray-light);
+            transition: var(--transition);
+        }
+
+        .status-badge.active {
+            background: #ECFDF5;
+            color: #10B981;
+        }
+
+        .status-badge.warning-badge {
+            background: var(--brand-orange-light);
+            color: var(--brand-orange);
+        }
+
+        .status-badge.critical-badge {
+            background: var(--brand-red-light);
+            color: var(--brand-red);
+        }
+
+        /* Adjustment buttons below circular display */
+        .adjusters-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-adjust {
+            background: var(--white);
+            border: 1.5px solid var(--brand-gray-med);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--brand-gray-dark);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-adjust:hover:not(:disabled) {
+            border-color: var(--brand-navy);
+            color: var(--brand-navy);
+            background: var(--brand-gray-light);
+            transform: translateY(-1px);
+        }
+
+        /* Footer Buttons */
         .controls {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.5fr 1fr;
             gap: 1rem;
         }
 
         button {
-            padding: 1rem;
-            font-size: 1.1rem;
+            padding: 0.9rem;
+            font-size: 1.05rem;
             font-weight: 700;
+            font-family: inherit;
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .btn-primary {
             background-color: var(--brand-navy);
             color: var(--white);
-            box-shadow: 0 4px 6px rgba(27, 54, 93, 0.2);
+            box-shadow: 0 4px 12px rgba(27, 54, 93, 0.2);
         }
 
         .btn-primary:hover:not(:disabled) {
             background-color: var(--brand-navy-light);
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(27, 54, 93, 0.3);
+            box-shadow: 0 6px 16px rgba(27, 54, 93, 0.3);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .btn-primary.paused {
             background-color: var(--brand-orange);
-            box-shadow: 0 4px 6px rgba(232, 119, 34, 0.2);
+            box-shadow: 0 4px 12px rgba(232, 119, 34, 0.25);
         }
 
         .btn-primary.paused:hover {
             background-color: var(--brand-orange-hover);
+            box-shadow: 0 6px 16px rgba(232, 119, 34, 0.35);
         }
 
         .btn-secondary {
-            background-color: var(--brand-gray-light);
+            background-color: var(--white);
             color: var(--brand-gray-dark);
-            border: 2px solid #E2E8F0;
+            border: 2px solid var(--brand-gray-med);
         }
 
         .btn-secondary:hover:not(:disabled) {
-            background-color: #E2E8F0;
+            background-color: var(--brand-gray-light);
+            border-color: var(--brand-gray-dark);
             color: var(--brand-navy);
         }
 
+        /* Utility Toggles (like Screen Wake Lock / Auto-Reset indicator) */
+        .utility-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--brand-gray-med);
+            font-size: 0.8rem;
+            color: var(--brand-gray-text);
+            font-weight: 600;
+        }
+
+        .utility-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #CBD5E1;
+            display: inline-block;
+        }
+
+        .dot.active {
+            background: #10B981;
+            box-shadow: 0 0 6px #10B981;
+        }
+
+        /* Switch toggle styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #CBD5E1;
+            transition: .3s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--brand-orange);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(14px);
+        }
+
+        /* Animation keyframes */
+        @keyframes gentle-shake {
+            0% { transform: rotate(-0.5deg); }
+            100% { transform: rotate(0.5deg); }
+        }
+
         button:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none !important;
             box-shadow: none !important;
         }
 
-        @keyframes gentle-pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.05); }
+        /* Custom Keyboard Shortcut Hint */
+        .shortcut-hint {
+            font-size: 0.75rem;
+            color: var(--brand-gray-text);
+            margin-top: 1rem;
+            text-align: center;
+            opacity: 0.7;
         }
 
-        /* Responsive adjustments for very small screens */
-        @media (max-width: 360px) {
-            .controls {
-                grid-template-columns: 1fr;
+        /* Responsive adjustments */
+        @media (max-width: 400px) {
+            .app-card {
+                padding: 1.5rem 1.25rem;
+            }
+            .time-setting-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .time-input-group {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .presets-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -248,40 +649,132 @@
 
     <main class="app-card">
         <header class="header">
-            <div class="logo">ed<span>ACCESS</span></div>
+            <div class="logo-container">
+                <img src="edACCESS-Emblem-FullColor.png" alt="edACCESS Logo" class="brand-logo" onerror="this.style.display='none'; document.getElementById('textLogo').style.display='block';">
+            </div>
+            <div id="textLogo" class="logo" style="display: none;">ed<span>ACCESS</span></div>
             <div class="subtitle">Roundtable Timer</div>
         </header>
 
-        <section class="config-panel">
-            <label for="durationInput">Time Limit:</label>
-            <input type="number" id="durationInput" min="10" max="3600" value="120">
-            <span>seconds</span>
+        <!-- Timer Duration Panel -->
+        <section class="setup-section">
+            <div class="panel-title">
+                <span>⏱️ Timer Configuration</span>
+            </div>
+            <div class="time-setting-row">
+                <div class="time-input-group">
+                    <div class="time-input-wrapper">
+                        <input type="number" id="minInput" min="0" max="60" value="2">
+                        <span>m</span>
+                    </div>
+                    <div class="time-input-wrapper">
+                        <input type="number" id="secInput" min="0" max="59" value="00">
+                        <span>s</span>
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; font-weight: 500; color: var(--brand-gray-text);">Select duration</div>
+            </div>
+            <div class="presets-grid">
+                <button class="preset-btn" data-min="1">1m</button>
+                <button class="preset-btn" data-min="2">2m</button>
+                <button class="preset-btn" data-min="3">3m</button>
+                <button class="preset-btn" data-min="5">5m</button>
+            </div>
         </section>
 
+        <!-- Sound Settings Panel -->
+        <section class="sound-section">
+            <div class="panel-title">
+                <span>🔊 Audio Control</span>
+            </div>
+            <div class="control-row">
+                <div class="select-wrapper">
+                    <select id="soundSelect">
+                        <option value="bell">🔔 Resonant Bell</option>
+                        <option value="beeps">⚡ Digital Beeps</option>
+                        <option value="alarm">🚨 Alert Alarm</option>
+                    </select>
+                </div>
+                <button class="btn-test" id="testSoundBtn">Test Speaker</button>
+            </div>
+            <div class="volume-group">
+                <span class="volume-icon" id="volumeIcon" title="Mute">🔊</span>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+            </div>
+        </section>
+
+        <!-- Circular Display -->
         <section class="timer-wrapper">
             <svg class="timer-svg" viewBox="0 0 100 100">
                 <circle class="timer-circle-bg" cx="50" cy="50" r="45"></circle>
                 <circle class="timer-circle-progress" id="progressRing" cx="50" cy="50" r="45"></circle>
             </svg>
-            <div class="time-display" id="timeDisplay">02:00</div>
+            <div class="time-display-container">
+                <div class="time-display" id="timeDisplay">02:00</div>
+                <div class="status-badge" id="statusBadge">Ready</div>
+            </div>
         </section>
 
-        <section class="controls">
-            <button class="btn-primary" id="startBtn">Start</button>
-            <button class="btn-secondary" id="resetBtn">Reset</button>
+        <!-- Quick Time Adjustment Controls -->
+        <section class="adjusters-row">
+            <button class="btn-adjust" id="adjustMinus1m">-1m</button>
+            <button class="btn-adjust" id="adjustMinus30">-30s</button>
+            <button class="btn-adjust" id="adjustPlus30">+30s</button>
+            <button class="btn-adjust" id="adjustPlus1m">+1m</button>
         </section>
+
+        <!-- Main Action Controls -->
+        <section class="controls">
+            <button class="btn-primary" id="startBtn">
+                <span>Start</span>
+            </button>
+            <button class="btn-secondary" id="resetBtn">
+                <span>Reset</span>
+            </button>
+        </section>
+
+        <!-- Advanced Utilities -->
+        <section class="utility-row">
+            <div class="utility-item">
+                <span class="dot" id="wakeLockIndicator"></span>
+                <span>Screen Wake Lock</span>
+            </div>
+            <div class="utility-item">
+                <span>Auto-Reset (5s)</span>
+                <label class="switch">
+                    <input type="checkbox" id="autoResetToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </section>
+
+        <!-- Shortcut info -->
+        <div class="shortcut-hint">
+            Tip: Press <code>Space</code> to Start/Pause, <code>Esc</code> or <code>R</code> to Reset.
+        </div>
     </main>
 
     <script>
         class ConferenceTimer {
             constructor() {
+                // Load settings from localStorage
+                this.loadSettings();
+
                 // DOM Elements
                 this.display = document.getElementById('timeDisplay');
-                this.durationInput = document.getElementById('durationInput');
+                this.minInput = document.getElementById('minInput');
+                this.secInput = document.getElementById('secInput');
                 this.startBtn = document.getElementById('startBtn');
                 this.resetBtn = document.getElementById('resetBtn');
                 this.progressRing = document.getElementById('progressRing');
-                
+                this.soundSelect = document.getElementById('soundSelect');
+                this.volumeSlider = document.getElementById('volumeSlider');
+                this.volumeIcon = document.getElementById('volumeIcon');
+                this.testSoundBtn = document.getElementById('testSoundBtn');
+                this.statusBadge = document.getElementById('statusBadge');
+                this.wakeLockIndicator = document.getElementById('wakeLockIndicator');
+                this.autoResetToggle = document.getElementById('autoResetToggle');
+
                 // SVG Circle Math
                 this.radius = this.progressRing.r.baseVal.value;
                 this.circumference = this.radius * 2 * Math.PI;
@@ -290,30 +783,161 @@
 
                 // State variables
                 this.audioCtx = null;
-                this.animationFrame = null;
-                this.totalDuration = 120;
-                this.remainingTime = 120;
+                this.remainingTime = 0;
                 this.endTime = null;
                 this.isRunning = false;
                 this.hasPlayedWarning = false;
+                this.wakeLock = null;
+                this.fallbackInterval = null;
+                this.previousVolume = 0.8;
 
+                // Setup initial UI states
+                this.initializeUI();
                 this.bindEvents();
-                this.updateDisplay(this.remainingTime);
+                this.setupWorker();
+                this.reset();
+            }
+
+            loadSettings() {
+                this.durationMin = parseInt(localStorage.getItem('edaccess_duration_min')) || 2;
+                this.durationSec = parseInt(localStorage.getItem('edaccess_duration_sec')) || 0;
+                this.totalDuration = (this.durationMin * 60) + this.durationSec;
+                
+                const savedVol = localStorage.getItem('edaccess_volume');
+                this.volume = savedVol !== null ? parseFloat(savedVol) : 0.8;
+                
+                this.soundType = localStorage.getItem('edaccess_sound') || 'bell';
+                this.autoReset = localStorage.getItem('edaccess_autoreset') !== 'false';
+            }
+
+            saveSettings() {
+                localStorage.setItem('edaccess_duration_min', this.durationMin);
+                localStorage.setItem('edaccess_duration_sec', this.durationSec);
+                localStorage.setItem('edaccess_volume', this.volume);
+                localStorage.setItem('edaccess_sound', this.soundType);
+                localStorage.setItem('edaccess_autoreset', this.autoReset);
+            }
+
+            initializeUI() {
+                this.minInput.value = this.durationMin;
+                this.secInput.value = this.durationSec.toString().padStart(2, '0');
+                this.volumeSlider.value = this.volume * 100;
+                this.soundSelect.value = this.soundType;
+                this.autoResetToggle.checked = this.autoReset;
+                this.updateVolumeIcon();
+                this.updatePresetsUI();
             }
 
             bindEvents() {
                 this.startBtn.addEventListener('click', () => this.toggle());
                 this.resetBtn.addEventListener('click', () => this.reset());
-                this.durationInput.addEventListener('input', () => {
-                    if (!this.isRunning) {
-                        let val = parseInt(this.durationInput.value, 10);
-                        if (isNaN(val) || val <= 0) val = 0;
-                        this.totalDuration = val;
-                        this.remainingTime = val;
-                        this.updateDisplay(this.remainingTime);
-                        this.setProgress(1);
+                this.testSoundBtn.addEventListener('click', () => this.testSound());
+                
+                // Input time adjustments
+                this.minInput.addEventListener('change', () => this.handleTimeInputChange());
+                this.secInput.addEventListener('change', () => this.handleTimeInputChange());
+                
+                // Volume slider
+                this.volumeSlider.addEventListener('input', (e) => {
+                    this.volume = parseFloat(e.target.value) / 100;
+                    this.updateVolumeIcon();
+                    this.saveSettings();
+                });
+                
+                // Volume icon click to mute/unmute
+                this.volumeIcon.addEventListener('click', () => this.toggleMute());
+                
+                // Sound Profile
+                this.soundSelect.addEventListener('change', (e) => {
+                    this.soundType = e.target.value;
+                    this.saveSettings();
+                });
+                
+                // Auto Reset Switch
+                this.autoResetToggle.addEventListener('change', (e) => {
+                    this.autoReset = e.target.checked;
+                    this.saveSettings();
+                });
+
+                // Presets
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (this.isRunning) return;
+                        const minutes = parseInt(e.target.dataset.min, 10);
+                        this.durationMin = minutes;
+                        this.durationSec = 0;
+                        this.minInput.value = minutes;
+                        this.secInput.value = '00';
+                        this.handleTimeInputChange();
+                    });
+                });
+
+                // Time Adjustments (+/-)
+                document.getElementById('adjustPlus30').addEventListener('click', () => this.adjustTime(30));
+                document.getElementById('adjustMinus30').addEventListener('click', () => this.adjustTime(-30));
+                document.getElementById('adjustPlus1m').addEventListener('click', () => this.adjustTime(60));
+                document.getElementById('adjustMinus1m').addEventListener('click', () => this.adjustTime(-60));
+
+                // Keyboard Shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') {
+                        return; // do not interrupt normal input focus typing
+                    }
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.toggle();
+                    } else if (e.code === 'KeyR' || e.code === 'Escape') {
+                        e.preventDefault();
+                        this.reset();
+                    } else if (e.code === 'ArrowUp') {
+                        e.preventDefault();
+                        this.adjustVolume(5);
+                    } else if (e.code === 'ArrowDown') {
+                        e.preventDefault();
+                        this.adjustVolume(-5);
                     }
                 });
+
+                // Tab Visibility Change Sync
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible') {
+                        if (this.isRunning) {
+                            const now = Date.now();
+                            this.remainingTime = Math.max(0, (this.endTime - now) / 1000);
+                            this.tick();
+                            this.requestWakeLock();
+                        }
+                    }
+                });
+            }
+
+            setupWorker() {
+                try {
+                    const blob = new Blob([`
+                        let intervalId = null;
+                        self.onmessage = function(e) {
+                            if (e.data.action === 'start') {
+                                if (intervalId) clearInterval(intervalId);
+                                intervalId = setInterval(() => {
+                                    self.postMessage('tick');
+                                }, 100);
+                            } else if (e.data.action === 'stop') {
+                                if (intervalId) {
+                                    clearInterval(intervalId);
+                                    intervalId = null;
+                                }
+                            }
+                        };
+                    `], { type: 'application/javascript' });
+                    const workerUrl = URL.createObjectURL(blob);
+                    this.worker = new Worker(workerUrl);
+                    this.worker.onmessage = () => {
+                        this.tick();
+                    };
+                } catch (e) {
+                    console.warn('Web Worker blocked or not supported. Using standard setInterval fallback.', e);
+                    this.worker = null;
+                }
             }
 
             initAudio() {
@@ -325,8 +949,9 @@
                 }
             }
 
-            // --- Robust Audio Generators ---
+            // --- Robust Audio Generators (Louder & Richer wave combination) ---
             playTone(freq, type, startTimeOffset, duration, volStart, volEnd) {
+                this.initAudio();
                 const osc = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
                 const startTime = this.audioCtx.currentTime + startTimeOffset;
@@ -334,8 +959,11 @@
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, startTime);
                 
-                gain.gain.setValueAtTime(volStart, startTime);
-                gain.gain.exponentialRampToValueAtTime(volEnd, startTime + duration);
+                const scaledStart = volStart * this.volume;
+                const scaledEnd = volEnd * this.volume;
+                
+                gain.gain.setValueAtTime(scaledStart, startTime);
+                gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, scaledEnd), startTime + duration);
                 
                 osc.connect(gain);
                 gain.connect(this.audioCtx.destination);
@@ -344,26 +972,129 @@
                 osc.stop(startTime + duration);
             }
 
+            // Resonant multi-partial bell sound (gorgeous and distinct)
+            playBell(freq, duration, volume = 0.8) {
+                this.initAudio();
+                const startTime = this.audioCtx.currentTime;
+                // Harmonics for a metallic chime (bell) sound
+                const partials = [1, 1.2, 1.5, 2.0, 2.5, 3.0];
+                const decays = [1, 0.8, 0.6, 0.4, 0.2, 0.1];
+                const scaledVol = volume * this.volume;
+
+                partials.forEach((ratio, index) => {
+                    const osc = this.audioCtx.createOscillator();
+                    const gain = this.audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq * ratio, startTime);
+                    
+                    const partDecay = duration * decays[index];
+                    gain.gain.setValueAtTime(scaledVol * (1 / partials.length), startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + partDecay);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.audioCtx.destination);
+                    
+                    osc.start(startTime);
+                    osc.stop(startTime + partDecay);
+                });
+            }
+
+            // Triple crisp beep sequence
+            playDigitalBeeps(volume = 0.8) {
+                this.initAudio();
+                this.playTone(880, 'square', 0, 0.1, volume, 0.01);
+                this.playTone(880, 'square', 0.15, 0.1, volume, 0.01);
+                this.playTone(1200, 'square', 0.3, 0.2, volume, 0.01);
+            }
+
+            // Lowpass-filtered sawtooth siren sweeps for noisy conference rooms
+            playAlertAlarm(volume = 0.8) {
+                this.initAudio();
+                const startTime = this.audioCtx.currentTime;
+                const scaledVol = volume * this.volume;
+                
+                for (let i = 0; i < 4; i++) {
+                    const tStart = i * 0.25;
+                    const osc = this.audioCtx.createOscillator();
+                    const gain = this.audioCtx.createGain();
+                    
+                    osc.type = 'sawtooth';
+                    
+                    const filter = this.audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1500, startTime + tStart);
+                    
+                    osc.frequency.setValueAtTime(i % 2 === 0 ? 800 : 600, startTime + tStart);
+                    
+                    gain.gain.setValueAtTime(scaledVol * 0.7, startTime + tStart);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + tStart + 0.2);
+                    
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.audioCtx.destination);
+                    
+                    osc.start(startTime + tStart);
+                    osc.stop(startTime + tStart + 0.2);
+                }
+            }
+
             playStartSound() {
                 this.initAudio();
-                this.playTone(523.25, 'sine', 0, 0.4, 0.2, 0.001); // Soft C5
+                // Uplifting G5 -> C6 chime
+                this.playTone(783.99, 'sine', 0, 0.1, 0.4, 0.01);
+                this.playTone(1046.50, 'sine', 0.1, 0.25, 0.4, 0.01);
             }
 
             playWarningSound() {
                 this.initAudio();
-                this.playTone(659.25, 'sine', 0, 0.15, 0.15, 0.001); // E5
-                this.playTone(659.25, 'sine', 0.2, 0.15, 0.15, 0.001); // E5 (echo)
+                // Gentle E5 double beep
+                this.playTone(659.25, 'triangle', 0, 0.15, 0.5, 0.01);
+                this.playTone(659.25, 'triangle', 0.2, 0.25, 0.4, 0.01);
             }
 
             playDoneSound() {
                 this.initAudio();
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-                notes.forEach((freq, i) => {
-                    this.playTone(freq, 'triangle', i * 0.12, 0.25, 0.3, 0.01);
-                });
+                if (this.soundType === 'bell') {
+                    this.playBell(523.25, 3.0, 1.0);
+                } else if (this.soundType === 'beeps') {
+                    this.playDigitalBeeps(0.9);
+                } else if (this.soundType === 'alarm') {
+                    this.playAlertAlarm(0.95);
+                }
             }
 
-            // --- Timer Logic ---
+            testSound() {
+                this.initAudio();
+                if (this.soundType === 'bell') {
+                    this.playBell(523.25, 1.5, 0.8);
+                } else if (this.soundType === 'beeps') {
+                    this.playTone(880, 'square', 0, 0.1, 0.8, 0.01);
+                    this.playTone(1200, 'square', 0.15, 0.2, 0.8, 0.01);
+                } else if (this.soundType === 'alarm') {
+                    const startTime = this.audioCtx.currentTime;
+                    const scaledVol = 0.8 * this.volume;
+                    for (let i = 0; i < 2; i++) {
+                        const tStart = i * 0.25;
+                        const osc = this.audioCtx.createOscillator();
+                        const gain = this.audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        const filter = this.audioCtx.createBiquadFilter();
+                        filter.type = 'lowpass';
+                        filter.frequency.setValueAtTime(1500, startTime + tStart);
+                        osc.frequency.setValueAtTime(i === 0 ? 800 : 600, startTime + tStart);
+                        gain.gain.setValueAtTime(scaledVol * 0.7, startTime + tStart);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + tStart + 0.2);
+                        osc.connect(filter);
+                        filter.connect(gain);
+                        gain.connect(this.audioCtx.destination);
+                        osc.start(startTime + tStart);
+                        osc.stop(startTime + tStart + 0.2);
+                    }
+                }
+            }
+
+            // --- Controller Logic ---
             setProgress(percent) {
                 const offset = this.circumference - percent * this.circumference;
                 this.progressRing.style.strokeDashoffset = offset;
@@ -373,16 +1104,29 @@
                 const totalSeconds = Math.ceil(secondsFloat);
                 const mins = Math.floor(totalSeconds / 60);
                 const secs = totalSeconds % 60;
-                
+
                 this.display.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                
-                // Visual warning threshold
-                if (totalSeconds <= 30 && totalSeconds > 0) {
-                    this.display.classList.add('warning');
-                    this.progressRing.classList.add('warning');
+
+                if (totalSeconds <= 10 && totalSeconds > 0) {
+                    this.display.className = 'time-display critical';
+                    this.progressRing.className = 'timer-circle-progress critical';
+                    this.statusBadge.textContent = 'Critical Time!';
+                    this.statusBadge.className = 'status-badge critical-badge';
+                } else if (totalSeconds <= 30 && totalSeconds > 0) {
+                    this.display.className = 'time-display warning';
+                    this.progressRing.className = 'timer-circle-progress warning';
+                    this.statusBadge.textContent = 'Warning Period';
+                    this.statusBadge.className = 'status-badge warning-badge';
+                } else if (totalSeconds > 0) {
+                    this.display.className = 'time-display';
+                    this.progressRing.className = 'timer-circle-progress';
+                    this.statusBadge.textContent = 'Active Speaker';
+                    this.statusBadge.className = 'status-badge active';
                 } else {
-                    this.display.classList.remove('warning');
-                    this.progressRing.classList.remove('warning');
+                    this.display.className = 'time-display';
+                    this.progressRing.className = 'timer-circle-progress';
+                    this.statusBadge.textContent = 'Time Up!';
+                    this.statusBadge.className = 'status-badge critical-badge';
                 }
             }
 
@@ -391,55 +1135,71 @@
 
                 const now = Date.now();
                 this.remainingTime = Math.max(0, (this.endTime - now) / 1000);
-                
-                this.updateDisplay(this.remainingTime);
-                this.setProgress(this.remainingTime / this.totalDuration);
 
-                // Audio warning trigger
-                if (this.remainingTime <= 30 && this.remainingTime > 29 && !this.hasPlayedWarning) {
+                if (document.visibilityState === 'visible') {
+                    this.updateDisplay(this.remainingTime);
+                    this.setProgress(this.remainingTime / this.totalDuration);
+                }
+
+                // Play warning audio at exactly 30s remaining
+                if (this.remainingTime <= 30 && this.remainingTime > 0 && !this.hasPlayedWarning) {
                     this.playWarningSound();
                     this.hasPlayedWarning = true;
                 }
 
-                // Finish trigger
                 if (this.remainingTime <= 0) {
                     this.complete();
-                } else {
-                    this.animationFrame = requestAnimationFrame(() => this.tick());
                 }
             }
 
             toggle() {
                 this.initAudio();
-                
+
                 if (this.isRunning) {
                     // Pause
                     this.isRunning = false;
-                    cancelAnimationFrame(this.animationFrame);
+                    if (this.worker) {
+                        this.worker.postMessage({ action: 'stop' });
+                    } else if (this.fallbackInterval) {
+                        clearInterval(this.fallbackInterval);
+                        this.fallbackInterval = null;
+                    }
+                    this.releaseWakeLock();
+
                     this.startBtn.textContent = 'Resume';
                     this.startBtn.classList.remove('paused');
-                    this.durationInput.disabled = false;
+                    this.minInput.disabled = false;
+                    this.secInput.disabled = false;
+
+                    this.statusBadge.textContent = 'Paused';
+                    this.statusBadge.className = 'status-badge';
                 } else {
                     // Start or Resume
-                    if (this.remainingTime <= 0) this.reset();
+                    if (this.remainingTime <= 0) {
+                        this.reset();
+                    }
 
-                    const parsedInput = parseInt(this.durationInput.value, 10);
-                    
-                    // If starting fresh from a reset
                     if (this.remainingTime === this.totalDuration) {
-                        this.totalDuration = parsedInput > 0 ? parsedInput : 120;
-                        this.remainingTime = this.totalDuration;
                         this.playStartSound();
                         this.hasPlayedWarning = false;
                     }
 
                     this.endTime = Date.now() + (this.remainingTime * 1000);
                     this.isRunning = true;
-                    this.durationInput.disabled = true;
-                    
+                    this.minInput.disabled = true;
+                    this.secInput.disabled = true;
+
                     this.startBtn.textContent = 'Pause';
                     this.startBtn.classList.add('paused');
-                    
+
+                    this.requestWakeLock();
+
+                    if (this.worker) {
+                        this.worker.postMessage({ action: 'start' });
+                    } else {
+                        this.fallbackInterval = setInterval(() => this.tick(), 100);
+                    }
+
                     this.tick();
                 }
             }
@@ -447,37 +1207,184 @@
             complete() {
                 this.isRunning = false;
                 this.remainingTime = 0;
+
+                if (this.worker) {
+                    this.worker.postMessage({ action: 'stop' });
+                } else if (this.fallbackInterval) {
+                    clearInterval(this.fallbackInterval);
+                    this.fallbackInterval = null;
+                }
+
+                this.releaseWakeLock();
                 this.updateDisplay(0);
                 this.setProgress(0);
                 this.playDoneSound();
-                
+
                 this.startBtn.textContent = 'Start';
                 this.startBtn.classList.remove('paused');
-                this.durationInput.disabled = false;
-                
-                // Automatically prep for next user
-                setTimeout(() => this.reset(), 3000);
+                this.minInput.disabled = false;
+                this.secInput.disabled = false;
+
+                if (this.autoReset) {
+                    this.statusBadge.textContent = 'Auto-Resetting...';
+                    this.startBtn.disabled = true;
+                    setTimeout(() => {
+                        this.startBtn.disabled = false;
+                        if (!this.isRunning && this.remainingTime === 0) {
+                            this.reset();
+                        }
+                    }, 5000);
+                } else {
+                    this.statusBadge.textContent = 'Finished';
+                }
             }
 
             reset() {
                 this.isRunning = false;
-                cancelAnimationFrame(this.animationFrame);
-                
-                const parsedInput = parseInt(this.durationInput.value, 10);
-                this.totalDuration = parsedInput > 0 ? parsedInput : 120;
+
+                if (this.worker) {
+                    this.worker.postMessage({ action: 'stop' });
+                } else if (this.fallbackInterval) {
+                    clearInterval(this.fallbackInterval);
+                    this.fallbackInterval = null;
+                }
+
+                this.releaseWakeLock();
+
                 this.remainingTime = this.totalDuration;
                 this.hasPlayedWarning = false;
-                
+
                 this.updateDisplay(this.remainingTime);
                 this.setProgress(1);
-                
+
                 this.startBtn.textContent = 'Start';
                 this.startBtn.classList.remove('paused');
-                this.durationInput.disabled = false;
+                this.minInput.disabled = false;
+                this.secInput.disabled = false;
+
+                this.statusBadge.textContent = 'Ready';
+                this.statusBadge.className = 'status-badge';
+            }
+
+            // --- Utility Helpers ---
+            handleTimeInputChange() {
+                let min = parseInt(this.minInput.value, 10);
+                let sec = parseInt(this.secInput.value, 10);
+
+                if (isNaN(min) || min < 0) min = 0;
+                if (isNaN(sec) || sec < 0) sec = 0;
+                if (sec > 59) sec = 59;
+                if (min === 0 && sec < 10) sec = 10; // minimum 10s
+                if (min > 60) min = 60; // maximum 60m
+
+                this.durationMin = min;
+                this.durationSec = sec;
+                this.minInput.value = min;
+                this.secInput.value = sec.toString().padStart(2, '0');
+
+                this.totalDuration = (min * 60) + sec;
+                this.remainingTime = this.totalDuration;
+
+                this.updateDisplay(this.remainingTime);
+                this.setProgress(1);
+                this.updatePresetsUI();
+                this.saveSettings();
+            }
+
+            adjustTime(amountSec) {
+                if (this.isRunning) {
+                    this.endTime += amountSec * 1000;
+                    const now = Date.now();
+                    this.remainingTime = Math.max(0, (this.endTime - now) / 1000);
+                    
+                    if (this.remainingTime > this.totalDuration) {
+                        this.totalDuration = Math.ceil(this.remainingTime);
+                    }
+                    if (this.remainingTime > 30) {
+                        this.hasPlayedWarning = false;
+                    }
+                    this.tick();
+                } else {
+                    let total = (this.durationMin * 60) + this.durationSec + amountSec;
+                    if (total < 10) total = 10;
+                    if (total > 3600) total = 3600;
+
+                    this.durationMin = Math.floor(total / 60);
+                    this.durationSec = total % 60;
+                    this.minInput.value = this.durationMin;
+                    this.secInput.value = this.durationSec.toString().padStart(2, '0');
+                    this.handleTimeInputChange();
+                }
+            }
+
+            adjustVolume(amount) {
+                let volPercent = Math.round(this.volume * 100) + amount;
+                volPercent = Math.max(0, Math.min(100, volPercent));
+                this.volume = volPercent / 100;
+                this.volumeSlider.value = volPercent;
+                this.updateVolumeIcon();
+                this.saveSettings();
+            }
+
+            toggleMute() {
+                if (this.volume > 0) {
+                    this.previousVolume = this.volume;
+                    this.volume = 0;
+                    this.volumeSlider.value = 0;
+                } else {
+                    this.volume = this.previousVolume || 0.8;
+                    this.volumeSlider.value = this.volume * 100;
+                }
+                this.updateVolumeIcon();
+                this.saveSettings();
+            }
+
+            updateVolumeIcon() {
+                if (this.volume === 0) {
+                    this.volumeIcon.textContent = '🔇';
+                    this.volumeIcon.title = 'Unmute';
+                } else if (this.volume < 0.4) {
+                    this.volumeIcon.textContent = '🔈';
+                    this.volumeIcon.title = 'Mute';
+                } else {
+                    this.volumeIcon.textContent = '🔊';
+                    this.volumeIcon.title = 'Mute';
+                }
+            }
+
+            updatePresetsUI() {
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    const minutes = parseInt(btn.dataset.min, 10);
+                    if (this.durationMin === minutes && this.durationSec === 0) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+
+            async requestWakeLock() {
+                if (!('wakeLock' in navigator)) return;
+                try {
+                    this.wakeLock = await navigator.wakeLock.request('screen');
+                    this.wakeLockIndicator.classList.add('active');
+                    this.wakeLockIndicator.title = 'Screen Wake Lock Active';
+                } catch (err) {
+                    console.warn(`Screen Wake Lock failed: ${err.message}`);
+                    this.wakeLockIndicator.classList.remove('active');
+                }
+            }
+
+            releaseWakeLock() {
+                if (this.wakeLock) {
+                    this.wakeLock.release().then(() => {
+                        this.wakeLock = null;
+                        this.wakeLockIndicator.classList.remove('active');
+                    });
+                }
             }
         }
 
-        // Initialize the app when the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', () => {
             const app = new ConferenceTimer();
         });
