@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>edACCESS Pro Roundtable Timer</title>
+    <style>
+        :root {
+            /* edACCESS Brand Colors */
+            --brand-navy: #1B365D;
+            --brand-navy-light: #2A528A;
+            --brand-orange: #E87722;
+            --brand-orange-hover: #CC661A;
+            --brand-gray-light: #F4F7F9;
+            --brand-gray-dark: #4A5568;
+            --white: #FFFFFF;
+            
+            /* UI Metrics */
+            --radius-lg: 16px;
+            --radius-sm: 8px;
+            --shadow: 0 12px 30px rgba(27, 54, 93, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--brand-gray-light) 0%, #E2E8F0 100%);
+            color: var(--brand-navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .app-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 480px;
+            padding: clamp(2rem, 5vw, 3rem);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--brand-navy) 0%, var(--brand-orange) 100%);
+        }
+
+        .header {
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--brand-navy);
+            margin-bottom: 0.25rem;
+        }
+
+        .logo span {
+            color: var(--brand-orange);
+            font-weight: 300;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--brand-gray-dark);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .config-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            background: var(--brand-gray-light);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid #E2E8F0;
+        }
+
+        .config-panel label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .config-panel input {
+            width: 80px;
+            padding: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--brand-navy);
+            border: 2px solid #CBD5E1;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .config-panel input:focus {
+            outline: none;
+            border-color: var(--brand-orange);
+            box-shadow: 0 0 0 3px rgba(232, 119, 34, 0.2);
+        }
+
+        .timer-wrapper {
+            position: relative;
+            width: clamp(200px, 60vw, 280px);
+            height: clamp(200px, 60vw, 280px);
+            margin: 0 auto 2.5rem;
+        }
+
+        .timer-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .timer-circle-bg {
+            fill: none;
+            stroke: var(--brand-gray-light);
+            stroke-width: 8;
+        }
+
+        .timer-circle-progress {
+            fill: none;
+            stroke: var(--brand-navy);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+        }
+
+        .timer-circle-progress.warning {
+            stroke: var(--brand-orange);
+        }
+
+        .time-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(3rem, 8vw, 4.5rem);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--brand-navy);
+            transition: color 0.3s ease;
+        }
+
+        .time-display.warning {
+            color: var(--brand-orange);
+            animation: gentle-pulse 2s infinite;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        button {
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background-color: var(--brand-navy);
+            color: var(--white);
+            box-shadow: 0 4px 6px rgba(27, 54, 93, 0.2);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--brand-navy-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(27, 54, 93, 0.3);
+        }
+
+        .btn-primary.paused {
+            background-color: var(--brand-orange);
+            box-shadow: 0 4px 6px rgba(232, 119, 34, 0.2);
+        }
+
+        .btn-primary.paused:hover {
+            background-color: var(--brand-orange-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--brand-gray-light);
+            color: var(--brand-gray-dark);
+            border: 2px solid #E2E8F0;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #E2E8F0;
+            color: var(--brand-navy);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        @keyframes gentle-pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        /* Responsive adjustments for very small screens */
+        @media (max-width: 360px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="app-card">
+        <header class="header">
+            <div class="logo">ed<span>ACCESS</span></div>
+            <div class="subtitle">Roundtable Timer</div>
+        </header>
+
+        <section class="config-panel">
+            <label for="durationInput">Time Limit:</label>
+            <input type="number" id="durationInput" min="10" max="3600" value="120">
+            <span>seconds</span>
+        </section>
+
+        <section class="timer-wrapper">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+                <circle class="timer-circle-bg" cx="50" cy="50" r="45"></circle>
+                <circle class="timer-circle-progress" id="progressRing" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="time-display" id="timeDisplay">02:00</div>
+        </section>
+
+        <section class="controls">
+            <button class="btn-primary" id="startBtn">Start</button>
+            <button class="btn-secondary" id="resetBtn">Reset</button>
+        </section>
+    </main>
+
+    <script>
+        class ConferenceTimer {
+            constructor() {
+                // DOM Elements
+                this.display = document.getElementById('timeDisplay');
+                this.durationInput = document.getElementById('durationInput');
+                this.startBtn = document.getElementById('startBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.progressRing = document.getElementById('progressRing');
+                
+                // SVG Circle Math
+                this.radius = this.progressRing.r.baseVal.value;
+                this.circumference = this.radius * 2 * Math.PI;
+                this.progressRing.style.strokeDasharray = `${this.circumference} ${this.circumference}`;
+                this.progressRing.style.strokeDashoffset = 0;
+
+                // State variables
+                this.audioCtx = null;
+                this.animationFrame = null;
+                this.totalDuration = 120;
+                this.remainingTime = 120;
+                this.endTime = null;
+                this.isRunning = false;
+                this.hasPlayedWarning = false;
+
+                this.bindEvents();
+                this.updateDisplay(this.remainingTime);
+            }
+
+            bindEvents() {
+                this.startBtn.addEventListener('click', () => this.toggle());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.durationInput.addEventListener('input', () => {
+                    if (!this.isRunning) {
+                        let val = parseInt(this.durationInput.value, 10);
+                        if (isNaN(val) || val <= 0) val = 0;
+                        this.totalDuration = val;
+                        this.remainingTime = val;
+                        this.updateDisplay(this.remainingTime);
+                        this.setProgress(1);
+                    }
+                });
+            }
+
+            initAudio() {
+                if (!this.audioCtx) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+            }
+
+            // --- Robust Audio Generators ---
+            playTone(freq, type, startTimeOffset, duration, volStart, volEnd) {
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                const startTime = this.audioCtx.currentTime + startTimeOffset;
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, startTime);
+                
+                gain.gain.setValueAtTime(volStart, startTime);
+                gain.gain.exponentialRampToValueAtTime(volEnd, startTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            }
+
+            playStartSound() {
+                this.initAudio();
+                this.playTone(523.25, 'sine', 0, 0.4, 0.2, 0.001); // Soft C5
+            }
+
+            playWarningSound() {
+                this.initAudio();
+                this.playTone(659.25, 'sine', 0, 0.15, 0.15, 0.001); // E5
+                this.playTone(659.25, 'sine', 0.2, 0.15, 0.15, 0.001); // E5 (echo)
+            }
+
+            playDoneSound() {
+                this.initAudio();
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, i) => {
+                    this.playTone(freq, 'triangle', i * 0.12, 0.25, 0.3, 0.01);
+                });
+            }
+
+            // --- Timer Logic ---
+            setProgress(percent) {
+                const offset = this.circumference - percent * this.circumference;
+                this.progressRing.style.strokeDashoffset = offset;
+            }
+
+            updateDisplay(secondsFloat) {
+                const totalSeconds = Math.ceil(secondsFloat);
+                const mins = Math.floor(totalSeconds / 60);
+                const secs = totalSeconds % 60;
+                
+                this.display.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                
+                // Visual warning threshold
+                if (totalSeconds <= 30 && totalSeconds > 0) {
+                    this.display.classList.add('warning');
+                    this.progressRing.classList.add('warning');
+                } else {
+                    this.display.classList.remove('warning');
+                    this.progressRing.classList.remove('warning');
+                }
+            }
+
+            tick() {
+                if (!this.isRunning) return;
+
+                const now = Date.now();
+                this.remainingTime = Math.max(0, (this.endTime - now) / 1000);
+                
+                this.updateDisplay(this.remainingTime);
+                this.setProgress(this.remainingTime / this.totalDuration);
+
+                // Audio warning trigger
+                if (this.remainingTime <= 30 && this.remainingTime > 29 && !this.hasPlayedWarning) {
+                    this.playWarningSound();
+                    this.hasPlayedWarning = true;
+                }
+
+                // Finish trigger
+                if (this.remainingTime <= 0) {
+                    this.complete();
+                } else {
+                    this.animationFrame = requestAnimationFrame(() => this.tick());
+                }
+            }
+
+            toggle() {
+                this.initAudio();
+                
+                if (this.isRunning) {
+                    // Pause
+                    this.isRunning = false;
+                    cancelAnimationFrame(this.animationFrame);
+                    this.startBtn.textContent = 'Resume';
+                    this.startBtn.classList.remove('paused');
+                    this.durationInput.disabled = false;
+                } else {
+                    // Start or Resume
+                    if (this.remainingTime <= 0) this.reset();
+
+                    const parsedInput = parseInt(this.durationInput.value, 10);
+                    
+                    // If starting fresh from a reset
+                    if (this.remainingTime === this.totalDuration) {
+                        this.totalDuration = parsedInput > 0 ? parsedInput : 120;
+                        this.remainingTime = this.totalDuration;
+                        this.playStartSound();
+                        this.hasPlayedWarning = false;
+                    }
+
+                    this.endTime = Date.now() + (this.remainingTime * 1000);
+                    this.isRunning = true;
+                    this.durationInput.disabled = true;
+                    
+                    this.startBtn.textContent = 'Pause';
+                    this.startBtn.classList.add('paused');
+                    
+                    this.tick();
+                }
+            }
+
+            complete() {
+                this.isRunning = false;
+                this.remainingTime = 0;
+                this.updateDisplay(0);
+                this.setProgress(0);
+                this.playDoneSound();
+                
+                this.startBtn.textContent = 'Start';
+                this.startBtn.classList.remove('paused');
+                this.durationInput.disabled = false;
+                
+                // Automatically prep for next user
+                setTimeout(() => this.reset(), 3000);
+            }
+
+            reset() {
+                this.isRunning = false;
+                cancelAnimationFrame(this.animationFrame);
+                
+                const parsedInput = parseInt(this.durationInput.value, 10);
+                this.totalDuration = parsedInput > 0 ? parsedInput : 120;
+                this.remainingTime = this.totalDuration;
+                this.hasPlayedWarning = false;
+                
+                this.updateDisplay(this.remainingTime);
+                this.setProgress(1);
+                
+                this.startBtn.textContent = 'Start';
+                this.startBtn.classList.remove('paused');
+                this.durationInput.disabled = false;
+            }
+        }
+
+        // Initialize the app when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new ConferenceTimer();
+        });
+    </script>
+</body>
+</html>
