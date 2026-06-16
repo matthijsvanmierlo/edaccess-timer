@@ -340,6 +340,112 @@
             background: var(--brand-orange);
         }
 
+        /* Alerts Settings Panel */
+        .alerts-section {
+            background: var(--brand-gray-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--brand-gray-med);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            text-align: left;
+        }
+
+        .alert-option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .alert-option-row.flex-row {
+            gap: 1rem;
+        }
+
+        /* Checkbox Styling */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 28px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            height: 18px;
+            width: 18px;
+            background-color: var(--white);
+            border: 2px solid var(--brand-gray-med);
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .checkbox-container:hover input ~ .checkmark {
+            border-color: var(--brand-navy-light);
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--brand-navy);
+            border-color: var(--brand-navy);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .checkbox-container .checkmark:after {
+            left: 5px;
+            top: 1px;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .reminder-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--white);
+            border: 2px solid var(--brand-gray-med);
+            border-radius: var(--radius-sm);
+            padding: 0.25rem 0.5rem;
+        }
+
+        .reminder-input-group input {
+            width: 45px;
+            border: none;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--brand-navy);
+            outline: none;
+            background: transparent;
+        }
+
         /* Timer display */
         .timer-wrapper {
             position: relative;
@@ -693,6 +799,9 @@
                         <option value="bell">🔔 Resonant Bell</option>
                         <option value="beeps">⚡ Digital Beeps</option>
                         <option value="alarm">🚨 Alert Alarm</option>
+                        <option value="arcade">🕹️ Retro Arcade</option>
+                        <option value="whistle">🏁 Sports Whistle</option>
+                        <option value="jazz">🎷 Jazz Fanfare</option>
                     </select>
                 </div>
                 <button class="btn-test" id="testSoundBtn">Test Speaker</button>
@@ -700,6 +809,32 @@
             <div class="volume-group">
                 <span class="volume-icon" id="volumeIcon" title="Mute">🔊</span>
                 <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+            </div>
+        </section>
+
+        <!-- Alerts Configuration Panel -->
+        <section class="alerts-section">
+            <div class="panel-title">
+                <span>🔔 Alerts & Reminders</span>
+            </div>
+            <div class="alert-option-row">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="warning30Toggle" checked>
+                    <span class="checkmark"></span>
+                    <span>30-Second Warning (Soft Tap)</span>
+                </label>
+            </div>
+            <div class="alert-option-row flex-row">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="customReminderToggle">
+                    <span class="checkmark"></span>
+                    <span>Custom Reminder</span>
+                </label>
+                <div class="reminder-input-group">
+                    <span>at</span>
+                    <input type="number" id="customReminderSec" min="5" max="300" value="60">
+                    <span>s left</span>
+                </div>
             </div>
         </section>
 
@@ -783,10 +918,13 @@
 
                 // State variables
                 this.audioCtx = null;
+                this.compressor = null;
+                this.masterGain = null;
                 this.remainingTime = 0;
                 this.endTime = null;
                 this.isRunning = false;
-                this.hasPlayedWarning = false;
+                this.hasPlayedWarning30 = false;
+                this.hasPlayedCustomReminder = false;
                 this.wakeLock = null;
                 this.fallbackInterval = null;
                 this.previousVolume = 0.8;
@@ -808,6 +946,11 @@
                 
                 this.soundType = localStorage.getItem('edaccess_sound') || 'bell';
                 this.autoReset = localStorage.getItem('edaccess_autoreset') !== 'false';
+                
+                // Alert configuration parameters
+                this.warning30Enabled = localStorage.getItem('edaccess_warning30') !== 'false';
+                this.customReminderEnabled = localStorage.getItem('edaccess_reminder_enabled') === 'true';
+                this.customReminderSec = parseInt(localStorage.getItem('edaccess_reminder_sec')) || 60;
             }
 
             saveSettings() {
@@ -816,6 +959,10 @@
                 localStorage.setItem('edaccess_volume', this.volume);
                 localStorage.setItem('edaccess_sound', this.soundType);
                 localStorage.setItem('edaccess_autoreset', this.autoReset);
+                
+                localStorage.setItem('edaccess_warning30', this.warning30Enabled);
+                localStorage.setItem('edaccess_reminder_enabled', this.customReminderEnabled);
+                localStorage.setItem('edaccess_reminder_sec', this.customReminderSec);
             }
 
             initializeUI() {
@@ -824,6 +971,17 @@
                 this.volumeSlider.value = this.volume * 100;
                 this.soundSelect.value = this.soundType;
                 this.autoResetToggle.checked = this.autoReset;
+                
+                // Bind alerts UI elements
+                this.warning30Toggle = document.getElementById('warning30Toggle');
+                this.customReminderToggle = document.getElementById('customReminderToggle');
+                this.customReminderSecInput = document.getElementById('customReminderSec');
+
+                this.warning30Toggle.checked = this.warning30Enabled;
+                this.customReminderToggle.checked = this.customReminderEnabled;
+                this.customReminderSecInput.value = this.customReminderSec;
+                this.customReminderSecInput.disabled = !this.customReminderEnabled;
+
                 this.updateVolumeIcon();
                 this.updatePresetsUI();
             }
@@ -840,6 +998,9 @@
                 // Volume slider
                 this.volumeSlider.addEventListener('input', (e) => {
                     this.volume = parseFloat(e.target.value) / 100;
+                    if (this.masterGain) {
+                        this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+                    }
                     this.updateVolumeIcon();
                     this.saveSettings();
                 });
@@ -856,6 +1017,31 @@
                 // Auto Reset Switch
                 this.autoResetToggle.addEventListener('change', (e) => {
                     this.autoReset = e.target.checked;
+                    this.saveSettings();
+                });
+
+                // Alerts & Reminders options
+                this.warning30Toggle.addEventListener('change', (e) => {
+                    this.warning30Enabled = e.target.checked;
+                    this.saveSettings();
+                });
+
+                this.customReminderToggle.addEventListener('change', (e) => {
+                    this.customReminderEnabled = e.target.checked;
+                    this.customReminderSecInput.disabled = !this.customReminderEnabled;
+                    this.saveSettings();
+                });
+
+                this.customReminderSecInput.addEventListener('change', () => {
+                    let val = parseInt(this.customReminderSecInput.value, 10);
+                    if (isNaN(val) || val < 1) val = 1;
+                    if (val > 3600) val = 3600;
+                    this.customReminderSec = val;
+                    this.customReminderSecInput.value = val;
+                    
+                    if (this.remainingTime > this.customReminderSec) {
+                        this.hasPlayedCustomReminder = false;
+                    }
                     this.saveSettings();
                 });
 
@@ -943,14 +1129,30 @@
             initAudio() {
                 if (!this.audioCtx) {
                     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Create dynamics compressor to optimize overall loudness and prevent clipping
+                    this.compressor = this.audioCtx.createDynamicsCompressor();
+                    this.compressor.threshold.setValueAtTime(-15, this.audioCtx.currentTime);
+                    this.compressor.knee.setValueAtTime(30, this.audioCtx.currentTime);
+                    this.compressor.ratio.setValueAtTime(12, this.audioCtx.currentTime);
+                    this.compressor.attack.setValueAtTime(0.003, this.audioCtx.currentTime);
+                    this.compressor.release.setValueAtTime(0.25, this.audioCtx.currentTime);
+
+                    // Master gain control linked to the volume slider
+                    this.masterGain = this.audioCtx.createGain();
+                    this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+
+                    // Connect compressor -> master gain -> destination
+                    this.compressor.connect(this.masterGain);
+                    this.masterGain.connect(this.audioCtx.destination);
                 }
                 if (this.audioCtx.state === 'suspended') {
                     this.audioCtx.resume();
                 }
             }
 
-            // --- Robust Audio Generators (Louder & Richer wave combination) ---
-            playTone(freq, type, startTimeOffset, duration, volStart, volEnd) {
+            // --- Audio Synthesizers (Louder, compressed, and rich) ---
+            playTone(freq, type, startTimeOffset, duration, volume = 0.8) {
                 this.initAudio();
                 const osc = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
@@ -959,27 +1161,22 @@
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, startTime);
                 
-                const scaledStart = volStart * this.volume;
-                const scaledEnd = volEnd * this.volume;
-                
-                gain.gain.setValueAtTime(scaledStart, startTime);
-                gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, scaledEnd), startTime + duration);
+                gain.gain.setValueAtTime(volume, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
                 
                 osc.connect(gain);
-                gain.connect(this.audioCtx.destination);
+                gain.connect(this.compressor);
                 
                 osc.start(startTime);
                 osc.stop(startTime + duration);
             }
 
-            // Resonant multi-partial bell sound (gorgeous and distinct)
-            playBell(freq, duration, volume = 0.8) {
+            // Multi-partial beautiful resonant bell
+            playBell(freq, duration, volume = 0.9) {
                 this.initAudio();
                 const startTime = this.audioCtx.currentTime;
-                // Harmonics for a metallic chime (bell) sound
                 const partials = [1, 1.2, 1.5, 2.0, 2.5, 3.0];
                 const decays = [1, 0.8, 0.6, 0.4, 0.2, 0.1];
-                const scaledVol = volume * this.volume;
 
                 partials.forEach((ratio, index) => {
                     const osc = this.audioCtx.createOscillator();
@@ -989,11 +1186,11 @@
                     osc.frequency.setValueAtTime(freq * ratio, startTime);
                     
                     const partDecay = duration * decays[index];
-                    gain.gain.setValueAtTime(scaledVol * (1 / partials.length), startTime);
+                    gain.gain.setValueAtTime(volume * (1.2 / partials.length), startTime);
                     gain.gain.exponentialRampToValueAtTime(0.0001, startTime + partDecay);
                     
                     osc.connect(gain);
-                    gain.connect(this.audioCtx.destination);
+                    gain.connect(this.compressor);
                     
                     osc.start(startTime);
                     osc.stop(startTime + partDecay);
@@ -1001,18 +1198,17 @@
             }
 
             // Triple crisp beep sequence
-            playDigitalBeeps(volume = 0.8) {
+            playDigitalBeeps(volume = 0.9) {
                 this.initAudio();
-                this.playTone(880, 'square', 0, 0.1, volume, 0.01);
-                this.playTone(880, 'square', 0.15, 0.1, volume, 0.01);
-                this.playTone(1200, 'square', 0.3, 0.2, volume, 0.01);
+                this.playTone(880, 'square', 0, 0.1, volume);
+                this.playTone(880, 'square', 0.15, 0.1, volume);
+                this.playTone(1200, 'square', 0.3, 0.25, volume);
             }
 
-            // Lowpass-filtered sawtooth siren sweeps for noisy conference rooms
-            playAlertAlarm(volume = 0.8) {
+            // Lowpass-filtered sawtooth sweeps (loud buzzer/alarm)
+            playAlertAlarm(volume = 0.9) {
                 this.initAudio();
                 const startTime = this.audioCtx.currentTime;
-                const scaledVol = volume * this.volume;
                 
                 for (let i = 0; i < 4; i++) {
                     const tStart = i * 0.25;
@@ -1023,34 +1219,160 @@
                     
                     const filter = this.audioCtx.createBiquadFilter();
                     filter.type = 'lowpass';
-                    filter.frequency.setValueAtTime(1500, startTime + tStart);
+                    filter.frequency.setValueAtTime(1800, startTime + tStart);
                     
-                    osc.frequency.setValueAtTime(i % 2 === 0 ? 800 : 600, startTime + tStart);
+                    osc.frequency.setValueAtTime(i % 2 === 0 ? 880 : 660, startTime + tStart);
                     
-                    gain.gain.setValueAtTime(scaledVol * 0.7, startTime + tStart);
+                    gain.gain.setValueAtTime(volume, startTime + tStart);
                     gain.gain.exponentialRampToValueAtTime(0.0001, startTime + tStart + 0.2);
                     
                     osc.connect(filter);
                     filter.connect(gain);
-                    gain.connect(this.audioCtx.destination);
+                    gain.connect(this.compressor);
                     
                     osc.start(startTime + tStart);
                     osc.stop(startTime + tStart + 0.2);
                 }
             }
 
-            playStartSound() {
+            // Fun Option 1: B5 -> E6 8-bit Coin sound
+            playRetroArcade(volume = 0.9) {
                 this.initAudio();
-                // Uplifting G5 -> C6 chime
-                this.playTone(783.99, 'sine', 0, 0.1, 0.4, 0.01);
-                this.playTone(1046.50, 'sine', 0.1, 0.25, 0.4, 0.01);
+                const startTime = this.audioCtx.currentTime;
+                
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(987.77, startTime); // B5
+                osc.frequency.setValueAtTime(1318.51, startTime + 0.07); // E6
+                
+                gain.gain.setValueAtTime(volume * 0.8, startTime);
+                gain.gain.setValueAtTime(volume * 0.8, startTime + 0.07);
+                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.32);
+                
+                osc.connect(gain);
+                gain.connect(this.compressor);
+                
+                osc.start(startTime);
+                osc.stop(startTime + 0.35);
             }
 
-            playWarningSound() {
+            // Fun Option 2: Referee whistle beating effect
+            playSportsWhistle(volume = 0.9) {
                 this.initAudio();
-                // Gentle E5 double beep
-                this.playTone(659.25, 'triangle', 0, 0.15, 0.5, 0.01);
-                this.playTone(659.25, 'triangle', 0.2, 0.25, 0.4, 0.01);
+                const startTime = this.audioCtx.currentTime;
+                
+                const osc1 = this.audioCtx.createOscillator();
+                const osc2 = this.audioCtx.createOscillator();
+                const gain1 = this.audioCtx.createGain();
+                const gain2 = this.audioCtx.createGain();
+                
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(2200, startTime);
+                
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(2240, startTime);
+                
+                // Whistle vibrato LFO
+                const lfo = this.audioCtx.createOscillator();
+                const lfoGain = this.audioCtx.createGain();
+                lfo.frequency.setValueAtTime(30, startTime);
+                lfoGain.gain.setValueAtTime(50, startTime);
+                
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc1.frequency);
+                lfoGain.connect(osc2.frequency);
+                
+                gain1.gain.setValueAtTime(volume * 0.6, startTime);
+                gain1.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
+                
+                gain2.gain.setValueAtTime(volume * 0.6, startTime);
+                gain2.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
+                
+                osc1.connect(gain1);
+                osc2.connect(gain2);
+                gain1.connect(this.compressor);
+                gain2.connect(this.compressor);
+                
+                lfo.start(startTime);
+                osc1.start(startTime);
+                osc2.start(startTime);
+                
+                lfo.stop(startTime + 0.6);
+                osc1.stop(startTime + 0.6);
+                osc2.stop(startTime + 0.6);
+            }
+
+            // Fun Option 3: Jazz major 9th sweep arpeggio
+            playJazzFanfare(volume = 0.9) {
+                this.initAudio();
+                const notes = [523.25, 659.25, 783.99, 987.77, 1174.66]; // C5, E5, G5, B5, D6
+                notes.forEach((freq, idx) => {
+                    const delay = idx * 0.08;
+                    const duration = 0.8 - delay;
+                    this.playTone(freq, 'triangle', delay, duration, volume * 0.5);
+                });
+            }
+
+            playStartSound() {
+                this.initAudio();
+                this.playTone(783.99, 'sine', 0, 0.1, 0.4);
+                this.playTone(1046.50, 'sine', 0.1, 0.25, 0.4);
+            }
+
+            // Less intrusive warning taps (Warm woodblocks)
+            playSoftWarningSound() {
+                this.initAudio();
+                const startTime = this.audioCtx.currentTime;
+                this.playWarningTap(startTime, 0.6);
+                this.playWarningTap(startTime + 0.15, 0.45);
+            }
+
+            playWarningTap(time, volume) {
+                const osc1 = this.audioCtx.createOscillator();
+                const osc2 = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(523.25, time); // C5
+                
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1046.50, time); // C6 harmonic
+                
+                gain.gain.setValueAtTime(0, time);
+                gain.gain.linearRampToValueAtTime(volume, time + 0.002);
+                gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.07);
+                
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(this.compressor);
+                
+                osc1.start(time);
+                osc2.start(time);
+                osc1.stop(time + 0.09);
+                osc2.stop(time + 0.09);
+            }
+
+            // Crystal chime chirp for mid-round reminders
+            playCustomChirp() {
+                this.initAudio();
+                const startTime = this.audioCtx.currentTime;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1500, startTime);
+                osc.frequency.exponentialRampToValueAtTime(2000, startTime + 0.12);
+                
+                gain.gain.setValueAtTime(0.7, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.12);
+                
+                osc.connect(gain);
+                gain.connect(this.compressor);
+                
+                osc.start(startTime);
+                osc.stop(startTime + 0.15);
             }
 
             playDoneSound() {
@@ -1061,6 +1383,12 @@
                     this.playDigitalBeeps(0.9);
                 } else if (this.soundType === 'alarm') {
                     this.playAlertAlarm(0.95);
+                } else if (this.soundType === 'arcade') {
+                    this.playRetroArcade(1.0);
+                } else if (this.soundType === 'whistle') {
+                    this.playSportsWhistle(1.0);
+                } else if (this.soundType === 'jazz') {
+                    this.playJazzFanfare(1.0);
                 }
             }
 
@@ -1069,11 +1397,10 @@
                 if (this.soundType === 'bell') {
                     this.playBell(523.25, 1.5, 0.8);
                 } else if (this.soundType === 'beeps') {
-                    this.playTone(880, 'square', 0, 0.1, 0.8, 0.01);
-                    this.playTone(1200, 'square', 0.15, 0.2, 0.8, 0.01);
+                    this.playTone(880, 'square', 0, 0.1, 0.8);
+                    this.playTone(1200, 'square', 0.15, 0.2, 0.8);
                 } else if (this.soundType === 'alarm') {
                     const startTime = this.audioCtx.currentTime;
-                    const scaledVol = 0.8 * this.volume;
                     for (let i = 0; i < 2; i++) {
                         const tStart = i * 0.25;
                         const osc = this.audioCtx.createOscillator();
@@ -1082,15 +1409,21 @@
                         const filter = this.audioCtx.createBiquadFilter();
                         filter.type = 'lowpass';
                         filter.frequency.setValueAtTime(1500, startTime + tStart);
-                        osc.frequency.setValueAtTime(i === 0 ? 800 : 600, startTime + tStart);
-                        gain.gain.setValueAtTime(scaledVol * 0.7, startTime + tStart);
+                        osc.frequency.setValueAtTime(i === 0 ? 880 : 660, startTime + tStart);
+                        gain.gain.setValueAtTime(0.7, startTime + tStart);
                         gain.gain.exponentialRampToValueAtTime(0.0001, startTime + tStart + 0.2);
                         osc.connect(filter);
                         filter.connect(gain);
-                        gain.connect(this.audioCtx.destination);
+                        gain.connect(this.compressor);
                         osc.start(startTime + tStart);
                         osc.stop(startTime + tStart + 0.2);
                     }
+                } else if (this.soundType === 'arcade') {
+                    this.playRetroArcade(0.9);
+                } else if (this.soundType === 'whistle') {
+                    this.playSportsWhistle(0.9);
+                } else if (this.soundType === 'jazz') {
+                    this.playJazzFanfare(0.9);
                 }
             }
 
@@ -1141,10 +1474,20 @@
                     this.setProgress(this.remainingTime / this.totalDuration);
                 }
 
-                // Play warning audio at exactly 30s remaining
-                if (this.remainingTime <= 30 && this.remainingTime > 0 && !this.hasPlayedWarning) {
-                    this.playWarningSound();
-                    this.hasPlayedWarning = true;
+                // 30-Second Warning (Soft taps)
+                if (this.warning30Enabled && this.remainingTime <= 30 && this.remainingTime > 0 && !this.hasPlayedWarning30) {
+                    this.playSoftWarningSound();
+                    this.hasPlayedWarning30 = true;
+                }
+
+                // Custom Configurable Reminder (Chirp)
+                if (this.customReminderEnabled && 
+                    this.remainingTime <= this.customReminderSec && 
+                    this.remainingTime > 0 && 
+                    !this.hasPlayedCustomReminder && 
+                    this.remainingTime < this.totalDuration - 1) {
+                    this.playCustomChirp();
+                    this.hasPlayedCustomReminder = true;
                 }
 
                 if (this.remainingTime <= 0) {
@@ -1181,7 +1524,8 @@
 
                     if (this.remainingTime === this.totalDuration) {
                         this.playStartSound();
-                        this.hasPlayedWarning = false;
+                        this.hasPlayedWarning30 = false;
+                        this.hasPlayedCustomReminder = false;
                     }
 
                     this.endTime = Date.now() + (this.remainingTime * 1000);
@@ -1252,7 +1596,8 @@
                 this.releaseWakeLock();
 
                 this.remainingTime = this.totalDuration;
-                this.hasPlayedWarning = false;
+                this.hasPlayedWarning30 = false;
+                this.hasPlayedCustomReminder = false;
 
                 this.updateDisplay(this.remainingTime);
                 this.setProgress(1);
@@ -1301,7 +1646,10 @@
                         this.totalDuration = Math.ceil(this.remainingTime);
                     }
                     if (this.remainingTime > 30) {
-                        this.hasPlayedWarning = false;
+                        this.hasPlayedWarning30 = false;
+                    }
+                    if (this.remainingTime > this.customReminderSec) {
+                        this.hasPlayedCustomReminder = false;
                     }
                     this.tick();
                 } else {
@@ -1322,6 +1670,9 @@
                 volPercent = Math.max(0, Math.min(100, volPercent));
                 this.volume = volPercent / 100;
                 this.volumeSlider.value = volPercent;
+                if (this.masterGain) {
+                    this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
+                }
                 this.updateVolumeIcon();
                 this.saveSettings();
             }
@@ -1334,6 +1685,9 @@
                 } else {
                     this.volume = this.previousVolume || 0.8;
                     this.volumeSlider.value = this.volume * 100;
+                }
+                if (this.masterGain) {
+                    this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
                 }
                 this.updateVolumeIcon();
                 this.saveSettings();
