@@ -11,12 +11,12 @@
     <style>
         :root {
             /* edACCESS Brand Colors */
-            --brand-navy: #1B365D;
-            --brand-navy-light: #2A528A;
-            --brand-navy-dark: #0F2341;
-            --brand-orange: #E87722;
-            --brand-orange-light: #FCECE1;
-            --brand-orange-hover: #CC661A;
+            --brand-navy: #198E8E;
+            --brand-navy-light: #2BA4A4;
+            --brand-navy-dark: #116B6B;
+            --brand-orange: #F26322;
+            --brand-orange-light: #FDE8DE;
+            --brand-orange-hover: #D9561C;
             --brand-red: #EF4444;
             --brand-red-light: #FEE2E2;
             --brand-gray-light: #F4F7F9;
@@ -30,8 +30,8 @@
             --radius-md: 16px;
             --radius-sm: 10px;
             --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --shadow-md: 0 10px 15px -3px rgba(27, 54, 93, 0.08), 0 4px 6px -2px rgba(27, 54, 93, 0.03);
-            --shadow-lg: 0 20px 25px -5px rgba(27, 54, 93, 0.12), 0 10px 10px -5px rgba(27, 54, 93, 0.04);
+            --shadow-md: 0 10px 15px -3px rgba(25, 142, 142, 0.08), 0 4px 6px -2px rgba(25, 142, 142, 0.03);
+            --shadow-lg: 0 20px 25px -5px rgba(25, 142, 142, 0.12), 0 10px 10px -5px rgba(25, 142, 142, 0.04);
             --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -92,7 +92,7 @@
             max-height: 70px;
             max-width: 85%;
             object-fit: contain;
-            filter: drop-shadow(0 2px 4px rgba(27, 54, 93, 0.06));
+            filter: drop-shadow(0 2px 4px rgba(25, 142, 142, 0.06));
         }
 
         .logo {
@@ -166,7 +166,7 @@
 
         .time-input-wrapper:focus-within {
             border-color: var(--brand-orange);
-            box-shadow: 0 0 0 3px rgba(232, 119, 34, 0.15);
+            box-shadow: 0 0 0 3px rgba(242, 99, 34, 0.15);
         }
 
         .time-input-wrapper input {
@@ -477,7 +477,7 @@
         /* States */
         .timer-circle-progress.warning {
             stroke: var(--brand-orange);
-            filter: drop-shadow(0 0 6px rgba(232, 119, 34, 0.4));
+            filter: drop-shadow(0 0 6px rgba(242, 99, 34, 0.4));
         }
 
         .timer-circle-progress.critical {
@@ -596,13 +596,13 @@
         .btn-primary {
             background-color: var(--brand-navy);
             color: var(--white);
-            box-shadow: 0 4px 12px rgba(27, 54, 93, 0.2);
+            box-shadow: 0 4px 12px rgba(25, 142, 142, 0.2);
         }
 
         .btn-primary:hover:not(:disabled) {
             background-color: var(--brand-navy-light);
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(27, 54, 93, 0.3);
+            box-shadow: 0 6px 16px rgba(25, 142, 142, 0.3);
         }
 
         .btn-primary:active:not(:disabled) {
@@ -611,12 +611,12 @@
 
         .btn-primary.paused {
             background-color: var(--brand-orange);
-            box-shadow: 0 4px 12px rgba(232, 119, 34, 0.25);
+            box-shadow: 0 4px 12px rgba(242, 99, 34, 0.25);
         }
 
         .btn-primary.paused:hover {
             background-color: var(--brand-orange-hover);
-            box-shadow: 0 6px 16px rgba(232, 119, 34, 0.35);
+            box-shadow: 0 6px 16px rgba(242, 99, 34, 0.35);
         }
 
         .btn-secondary {
