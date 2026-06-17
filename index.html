@@ -46,8 +46,7 @@
             background: radial-gradient(circle at 10% 20%, #F1F5F9 0%, #E2E8F0 90%);
             color: var(--brand-navy);
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column;
             min-height: 100vh;
             padding: 1.5rem;
         }
@@ -56,6 +55,7 @@
             background: var(--white);
             width: 100%;
             max-width: 500px;
+            margin: auto;
             padding: 2.5rem 2rem;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
@@ -722,6 +722,16 @@
             box-shadow: none !important;
         }
 
+        /* Accessibility improvements */
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        .volume-slider:focus-visible,
+        .checkbox-container input:focus-visible ~ .checkmark {
+            outline: 2px solid var(--brand-orange);
+            outline-offset: 2px;
+        }
+
         /* Custom Keyboard Shortcut Hint */
         .shortcut-hint {
             font-size: 0.75rem;
@@ -732,7 +742,7 @@
         }
 
         /* Responsive adjustments */
-        @media (max-width: 400px) {
+        @media (max-width: 480px) {
             .app-card {
                 padding: 1.5rem 1.25rem;
             }
@@ -744,9 +754,19 @@
             .time-input-group {
                 width: 100%;
                 justify-content: space-between;
+                flex-wrap: wrap;
             }
             .presets-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .adjusters-row {
+                flex-wrap: wrap;
+            }
+            .alert-option-row.flex-row {
+                flex-wrap: wrap;
+            }
+            .controls {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -795,7 +815,7 @@
             </div>
             <div class="control-row">
                 <div class="select-wrapper">
-                    <select id="soundSelect">
+                    <select id="soundSelect" aria-label="Select Sound Type">
                         <option value="bell">🔔 Resonant Bell</option>
                         <option value="beeps">⚡ Digital Beeps</option>
                         <option value="alarm">🚨 Alert Alarm</option>
@@ -807,8 +827,8 @@
                 <button class="btn-test" id="testSoundBtn">Test Speaker</button>
             </div>
             <div class="volume-group">
-                <span class="volume-icon" id="volumeIcon" title="Mute">🔊</span>
-                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+                <span class="volume-icon" id="volumeIcon" title="Mute" aria-label="Toggle Mute" tabindex="0" role="button">🔊</span>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80" aria-label="Volume Control">
             </div>
         </section>
 
@@ -877,7 +897,7 @@
             <div class="utility-item">
                 <span>Auto-Reset (5s)</span>
                 <label class="switch">
-                    <input type="checkbox" id="autoResetToggle" checked>
+                    <input type="checkbox" id="autoResetToggle" checked aria-label="Auto-Reset Toggle">
                     <span class="slider"></span>
                 </label>
             </div>
